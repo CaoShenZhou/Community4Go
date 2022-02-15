@@ -1,24 +1,52 @@
 package main
 
 import (
+	"fmt"
+
+	"github.com/CaoShenZhou/Blog4Go/global"
+	"github.com/CaoShenZhou/Blog4Go/internal/model"
 	"github.com/CaoShenZhou/Blog4Go/internal/routers"
+	"github.com/CaoShenZhou/Blog4Go/pkg/setting"
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
-	// id := util.GetUUID()
-	// fmt.Println(id)
-	// pwd := "12345"
-	// // 获取前24位字符
-	// key := id[0:24]
-	// fmt.Println("原文：", pwd)
-	// encryptCode := util.AesEncrypt(pwd, key)
-	// fmt.Println("解密结果：", encryptCode)
-	// decryptCode := util.AesDecrypt(encryptCode, key)
-	// fmt.Println("解密结果：", decryptCode)
+// 连接数据库
+func setupDatasource() error {
+	var err error
+	global.Datasource, err = model.NewDatasource(global.DatasourceSetting)
+	if err != nil {
+		return err
+	}
+	return err
+}
 
+func init() {
+	setting, err := setting.ReadSetting()
+	if err != nil {
+		fmt.Println("读取配置文件错误,错误详情:", err)
+		return
+	}
+	err = setting.ReadConfigStruct("Server", &global.ServerSetting)
+	if err != nil {
+		fmt.Println("读取Server配置错误,错误详情:", err)
+		return
+	}
+	err = setting.ReadConfigStruct("Datasource", &global.DatasourceSetting)
+	if err != nil {
+		fmt.Println("读取Datasource配置错误,错误详情:", err)
+		return
+	}
+
+	err = setupDatasource()
+	if err != nil {
+		fmt.Println("连接Datasource错误,错误详情:", err)
+		return
+	}
+}
+
+func main() {
 	r := gin.Default()
 	r = routers.LoadUser(r)
 	r = routers.LoadArticleTag(r)
-	panic(r.Run(":8088"))
+	panic(r.Run(":" + global.ServerSetting.Port))
 }
