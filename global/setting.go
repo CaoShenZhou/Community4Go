@@ -7,4 +7,5 @@ import (
 var (
 	ServerSetting     *setting.ServerSetting
 	DatasourceSetting *setting.DatasourceSetting
+	JwtSetting        *setting.JwtSetting
 )

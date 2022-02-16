@@ -1,5 +1,7 @@
 package setting
 
+import "time"
+
 type ServerSetting struct {
 	Port string
 }
@@ -12,6 +14,12 @@ type DatasourceSetting struct {
 	Username   string
 	Password   string
 	Charset    string
+}
+
+type JwtSetting struct {
+	Secret string
+	Issuer string
+	Expire time.Duration
 }
 
 // 读取配置结构

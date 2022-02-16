@@ -1,16 +1,19 @@
 package routers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/CaoShenZhou/Blog4Go/global"
 	dto "github.com/CaoShenZhou/Blog4Go/internal/dto/user"
 	"github.com/CaoShenZhou/Blog4Go/internal/entity"
+	vo "github.com/CaoShenZhou/Blog4Go/internal/vo/user"
 	"github.com/CaoShenZhou/Blog4Go/pkg/response"
 	"github.com/CaoShenZhou/Blog4Go/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jinzhu/copier"
 )
 
 func LoadUser(e *gin.Engine) *gin.Engine {
@@ -23,12 +26,13 @@ func LoadUser(e *gin.Engine) *gin.Engine {
 }
 
 func Login(ctx *gin.Context) {
+	// 绑定模型
 	var loginJson dto.LoginUser
 	if err := ctx.ShouldBindJSON(&loginJson); err != nil {
 		ctx.JSON(http.StatusBadRequest, response.BadRequest.WithMsg(err.Error()))
 		return
 	}
-
+	// 校检模型数据
 	validate := validator.New()
 	err := validate.Struct(loginJson)
 	if err != nil {
@@ -40,17 +44,28 @@ func Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusPreconditionFailed, response.InvalidParams.WithMsg(err.Error()))
 		return
 	}
+	// 查询用户是否存在
 	var userInfo entity.User
 	global.Datasource.Debug().Where("email = ?", loginJson.Email).First(&userInfo)
-
+	// 比对密码
 	key := userInfo.ID[0:18] + "Mr.Cao"
 	aesPwd := util.AesEncrypt(loginJson.Password, key)
 	if aesPwd == userInfo.Password {
-		vo := map[string]interface{}{
-			"token":    "123",
-			"userInfo": userInfo,
+		// 拷贝模型字段
+		var userInfoVo vo.LoginUser
+		copier.Copy(&userInfoVo, &userInfo)
+		// 生成token
+		if token, err1 := util.GenerateToken(&userInfoVo); err1 == nil {
+			vo := map[string]interface{}{
+				"token":    token,
+				"userInfo": userInfoVo,
+			}
+			ctx.JSON(http.StatusOK, response.Ok.WithData(vo))
+		} else {
+			fmt.Println(err1.Error())
+			ctx.JSON(http.StatusInternalServerError, response.ServerError.WithMsg("token生成失败"))
+			return
 		}
-		ctx.JSON(http.StatusOK, response.Ok.WithMsgAndData("登录成功", vo))
 	} else {
 		ctx.JSON(http.StatusOK, response.InvalidParams.WithMsg("密码错误"))
 	}

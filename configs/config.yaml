@@ -8,3 +8,7 @@ datasource:
   username: root
   password: 123456
   charset: utf8
+jwt:
+  Secret: Mr.Cao
+  Issuer: blog-service
+  Expire: 7200
