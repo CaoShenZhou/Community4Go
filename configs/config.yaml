@@ -11,4 +11,8 @@ datasource:
 jwt:
   Secret: Mr.Cao
   Issuer: blog-service
-  Expire: 7200
+  Expire: 86400 #单位：秒 24*3600=86400=一天
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: 

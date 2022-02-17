@@ -3,7 +3,6 @@ package routers
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/CaoShenZhou/Blog4Go/global"
 	dto "github.com/CaoShenZhou/Blog4Go/internal/dto/user"
@@ -11,6 +10,7 @@ import (
 	vo "github.com/CaoShenZhou/Blog4Go/internal/vo/user"
 	"github.com/CaoShenZhou/Blog4Go/pkg/response"
 	"github.com/CaoShenZhou/Blog4Go/pkg/util"
+	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
@@ -55,23 +55,41 @@ func Login(ctx *gin.Context) {
 		var userInfoVo vo.LoginUser
 		copier.Copy(&userInfoVo, &userInfo)
 		// 生成token
-		if token, err1 := util.GenerateToken(&userInfoVo); err1 == nil {
+		if token, err := util.GenerateToken(&userInfoVo); err == nil {
+			var key = "token:user:" + userInfo.ID
+			global.Redis.Do("Set", key, token)
+			global.Redis.Do("EXPIRE", key, 24*3600)
 			vo := map[string]interface{}{
 				"token":    token,
 				"userInfo": userInfoVo,
 			}
 			ctx.JSON(http.StatusOK, response.Ok.WithData(vo))
+			return
 		} else {
-			fmt.Println(err1.Error())
 			ctx.JSON(http.StatusInternalServerError, response.ServerError.WithMsg("token生成失败"))
 			return
 		}
 	} else {
 		ctx.JSON(http.StatusOK, response.InvalidParams.WithMsg("密码错误"))
+		return
 	}
 }
+
 func Reg(c *gin.Context) {
-	uuid := util.GetUUID()
+
+	_, err := global.Redis.Do("Set", "abc", 10000000)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	r, err := redis.Int(global.Redis.Do("Get", "abc"))
+	if err != nil {
+		fmt.Println("get abc failed,", err)
+		return
+	}
+	fmt.Println(r)
+	/*uuid := util.GetUUID()
 	email := "caoshenzhou@gmail.com"
 	pwd := "123456"
 	key := uuid[0:18] + "Mr.Cao"
@@ -84,7 +102,7 @@ func Reg(c *gin.Context) {
 		Email:     email,
 		Nickname:  "张三",
 		Password:  AesPwd,
-	}
+	}*/
 	// u1 := entity.User{
 	// 	Nickname: "张三",
 	// 	Password: "123456",
@@ -100,8 +118,8 @@ func Reg(c *gin.Context) {
 	// res := global.Datasource.NewRecord(user)
 	// var userList []model.User
 	// res := global.Datasource.Where("id = 123").Find(&userList)
-	global.Datasource.Create(&user)
-	c.JSON(http.StatusOK, response.Ok.WithData(user))
+	// global.Datasource.Create(&user)
+	// c.JSON(http.StatusOK, response.Ok.WithData(user))
 }
 func CheckEmail(c *gin.Context) {
 }
