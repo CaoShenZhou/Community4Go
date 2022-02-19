@@ -13,7 +13,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-// 连接数据库
+// 数据库
 func setupDatasource(setting *setting.DatasourceSetting) error {
 	s := "%s:%s@(%s:%s)/%s?charset=%s&parseTime=True&loc=Local"
 	db, err := gorm.Open(setting.DriverName,
@@ -34,10 +34,9 @@ func setupDatasource(setting *setting.DatasourceSetting) error {
 	return nil
 }
 
-// 连接缓存
+// 缓存
 func setupRedis(setting *setting.RedisSetting) error {
 	option := redis.DialPassword(setting.Password)
-	// redis.DialDatabase(5)
 	conn, err := redis.Dial("tcp", setting.Host+":"+setting.Port, option)
 	if err != nil {
 		return err
@@ -72,6 +71,11 @@ func init() {
 	err = setting.ReadConfigStruct("redis", &global.RedisSetting)
 	if err != nil {
 		fmt.Println("读取redis配置错误,错误详情:", err)
+		return
+	}
+	err = setting.ReadConfigStruct("email", &global.EmailSetting)
+	if err != nil {
+		fmt.Println("读取email配置错误,错误详情:", err)
 		return
 	}
 

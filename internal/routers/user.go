@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 
 	"github.com/CaoShenZhou/Blog4Go/global"
@@ -19,22 +19,23 @@ import (
 func LoadUser(e *gin.Engine) *gin.Engine {
 	e.POST("/login", Login)
 	e.POST("/reg", Reg)
-	e.POST("/checkEmail", CheckEmail)
+	e.POST("/ValidateRegEmail", ValidateRegEmail)
 	e.POST("/updatePwd", UpdatePwd)
 
 	return e
 }
 
+// 登录
 func Login(ctx *gin.Context) {
 	// 绑定模型
-	var loginJson dto.LoginUser
-	if err := ctx.ShouldBindJSON(&loginJson); err != nil {
+	var loginUser dto.LoginUser
+	if err := ctx.ShouldBindJSON(&loginUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, response.BadRequest.WithMsg(err.Error()))
 		return
 	}
 	// 校检模型数据
 	validate := validator.New()
-	err := validate.Struct(loginJson)
+	err := validate.Struct(loginUser)
 	if err != nil {
 		/*for _, e := range err.(validator.ValidationErrors) {
 			fmt.Println("错误字段：", e.Field())
@@ -46,10 +47,10 @@ func Login(ctx *gin.Context) {
 	}
 	// 查询用户是否存在
 	var userInfo entity.User
-	global.Datasource.Debug().Where("email = ?", loginJson.Email).First(&userInfo)
+	global.Datasource.Where("email = ?", loginUser.Email).First(&userInfo)
 	// 比对密码
 	key := userInfo.ID[0:18] + "Mr.Cao"
-	aesPwd := util.AesEncrypt(loginJson.Password, key)
+	aesPwd := util.AesEncrypt(loginUser.Password, key)
 	if aesPwd == userInfo.Password {
 		// 拷贝模型字段
 		var userInfoVo vo.LoginUser
@@ -57,8 +58,8 @@ func Login(ctx *gin.Context) {
 		// 生成token
 		if token, err := util.GenerateToken(&userInfoVo); err == nil {
 			var key = "token:user:" + userInfo.ID
-			global.Redis.Do("Set", key, token)
-			global.Redis.Do("EXPIRE", key, 24*3600)
+			global.Redis.Do("set", key, token)
+			global.Redis.Do("expire", key, 24*60*60)
 			vo := map[string]interface{}{
 				"token":    token,
 				"userInfo": userInfoVo,
@@ -75,53 +76,119 @@ func Login(ctx *gin.Context) {
 	}
 }
 
-func Reg(c *gin.Context) {
-
-	_, err := global.Redis.Do("Set", "abc", 10000000)
-	if err != nil {
-		fmt.Println(err)
+// 注册
+func Reg(ctx *gin.Context) {
+	// 绑定模型
+	var regUser dto.RegUser
+	if err := ctx.ShouldBindJSON(&regUser); err != nil {
+		ctx.JSON(http.StatusBadRequest, response.BadRequest.WithMsg(err.Error()))
 		return
 	}
-
-	r, err := redis.Int(global.Redis.Do("Get", "abc"))
+	// 校检模型数据
+	validate := validator.New()
+	err := validate.Struct(regUser)
 	if err != nil {
-		fmt.Println("get abc failed,", err)
+		/*for _, e := range err.(validator.ValidationErrors) {
+			fmt.Println("错误字段：", e.Field())
+			fmt.Println("错误值：", e.Value())
+			fmt.Println("错误tag：", e.Tag())
+		}*/
+		ctx.JSON(http.StatusPreconditionFailed, response.InvalidParams.WithMsg(err.Error()))
 		return
 	}
-	fmt.Println(r)
-	/*uuid := util.GetUUID()
-	email := "caoshenzhou@gmail.com"
-	pwd := "123456"
-	key := uuid[0:18] + "Mr.Cao"
-	AesPwd := util.AesEncrypt(pwd, key)
-	user := entity.User{
-		ID:        uuid,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		DeletedAt: time.Now(),
-		Email:     email,
-		Nickname:  "张三",
-		Password:  AesPwd,
-	}*/
-	// u1 := entity.User{
-	// 	Nickname: "张三",
-	// 	Password: "123456",
-	// }
-	// u2 := entity.User{
-	// 	Nickname: "李四",
-	// 	Password: "456789",
-	// }
-	// uList := []entity.User{
-	// 	u1,
-	// 	u2,
-	// }
-	// res := global.Datasource.NewRecord(user)
-	// var userList []model.User
-	// res := global.Datasource.Where("id = 123").Find(&userList)
-	// global.Datasource.Create(&user)
-	// c.JSON(http.StatusOK, response.Ok.WithData(user))
+	// 查询邮箱是否注册
+	var isExistUser entity.User
+	global.Datasource.Where("email = ?", regUser.Email).Limit(1).First(&isExistUser)
+	if isExistUser == (entity.User{}) {
+		to := []string{regUser.Email}
+		captcha := util.RandomString(6, nil)
+		if err := util.SendTextEmail(to, "注册博客", "您的验证码为："+captcha+"，有效期为五分钟"); err != nil {
+			ctx.JSON(http.StatusInternalServerError, response.EmailError)
+		}
+		key := "user:reg:userInfo:" + regUser.Email
+		regUserJson, _ := json.Marshal(&regUser)
+		global.Redis.Do("set", key, regUserJson)
+		global.Redis.Do("expire", key, 5*60)
+		key = "user:reg:captcha:" + regUser.Email
+		global.Redis.Do("set", key, captcha)
+		global.Redis.Do("expire", key, 5*60)
+		ctx.JSON(http.StatusOK, response.Ok.WithMsg("验证码已发送，有效期为五分钟"))
+		return
+	} else {
+		ctx.JSON(http.StatusOK, response.Unavailable.WithMsg("该邮箱已被注册"))
+		return
+	}
 }
-func CheckEmail(c *gin.Context) {
+
+// 验证注册邮箱
+func ValidateRegEmail(ctx *gin.Context) {
+	// 绑定模型
+	var vru dto.ValidateRegUser
+	if err := ctx.ShouldBindJSON(&vru); err != nil {
+		ctx.JSON(http.StatusBadRequest, response.BadRequest.WithMsg(err.Error()))
+		return
+	}
+	// 校检模型数据
+	validate := validator.New()
+	err := validate.Struct(vru)
+	if err != nil {
+		/*for _, e := range err.(validator.ValidationErrors) {
+			fmt.Println("错误字段：", e.Field())
+			fmt.Println("错误值：", e.Value())
+			fmt.Println("错误tag：", e.Tag())
+		}*/
+		ctx.JSON(http.StatusPreconditionFailed, response.InvalidParams.WithMsg(err.Error()))
+		return
+	}
+	// 验证码key
+	captchaKey := "user:reg:captcha:" + vru.Email
+	if captcha, err := redis.String(global.Redis.Do("get", captchaKey)); err != nil {
+		if captcha == "" {
+			ctx.JSON(http.StatusInternalServerError, response.ValidateFail.WithMsg("验证码失效"))
+		} else {
+			ctx.JSON(http.StatusInternalServerError, response.RedisError)
+		}
+	} else {
+		// 如果验证码正确
+		if captcha == vru.Captcha {
+			// 用户信息key
+			userInfoKey := "user:reg:userInfo:" + vru.Email
+			if userInfoJson, err := redis.Bytes(global.Redis.Do("get", userInfoKey)); err != nil {
+				ctx.JSON(http.StatusInternalServerError, response.RedisError)
+				return
+			} else {
+				// 删除验证码缓存
+				global.Redis.Do("del", captchaKey)
+				// 删除用户信息缓存
+				global.Redis.Do("del", userInfoKey)
+				// 反序列化用户信息
+				userInfo := &dto.RegUser{}
+				json.Unmarshal(userInfoJson, userInfo)
+				// 填充用户信息
+				uuid := util.GetUUID()
+				nickname := userInfo.Nickname
+				email := userInfo.Email
+				pwd := userInfo.Password
+				key := uuid[0:18] + "Mr.Cao"
+				AesPwd := util.AesEncrypt(pwd, key)
+				user := entity.User{
+					ID:       uuid,
+					Email:    email,
+					Nickname: nickname,
+					Password: AesPwd,
+				}
+				// 写入数据
+				global.Datasource.Create(&user)
+				ctx.JSON(http.StatusOK, response.Ok.WithMsg("注册成功"))
+				return
+			}
+		} else {
+			ctx.JSON(http.StatusOK, response.ValidateFail.WithMsg("验证码错误"))
+			return
+		}
+	}
 }
+
+// 更新密码
 func UpdatePwd(c *gin.Context) {
 }

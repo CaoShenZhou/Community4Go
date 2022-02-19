@@ -9,4 +9,5 @@ var (
 	DatasourceSetting *setting.DatasourceSetting
 	JwtSetting        *setting.JwtSetting
 	RedisSetting      *setting.RedisSetting
+	EmailSetting      *setting.EmailSetting
 )

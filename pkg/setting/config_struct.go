@@ -29,6 +29,14 @@ type RedisSetting struct {
 	Password string
 }
 
+type EmailSetting struct {
+	Host     string
+	Port     string
+	Name     string
+	Username string
+	Password string
+}
+
 // 读取配置结构
 func (s *Setting) ReadConfigStruct(k string, v interface{}) error {
 	err := s.vp.UnmarshalKey(k, v)

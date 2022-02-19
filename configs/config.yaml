@@ -9,10 +9,16 @@ datasource:
   password: 123456
   charset: utf8
 jwt:
-  Secret: Mr.Cao
-  Issuer: blog-service
-  Expire: 86400 #单位：秒 24*3600=86400=一天
+  secret: Mr.Cao
+  issuer: blog-service
+  expire: 86400 #单位：秒 24*3600=86400=一天
 redis:
   host: 127.0.0.1
   port: 6379
   password: 
+email:
+  host: smtp.qq.com
+  port: 25
+  name: 神州博客
+  username: POP3/SMTP服务密码
+  password: shjinqixshfaeehe
