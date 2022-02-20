@@ -20,5 +20,6 @@ email:
   host: smtp.qq.com
   port: 25
   name: 神州博客
-  username: POP3/SMTP服务密码
-  password: shjinqixshfaeehe
+  username: 1791915772@qq.com
+  # POP3/SMTP服务密码
+  password: POP3/SMTP服务密码
