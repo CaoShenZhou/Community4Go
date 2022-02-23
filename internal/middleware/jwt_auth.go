@@ -15,9 +15,6 @@ func JwtAuth() gin.HandlerFunc {
 		fmt.Println(path)
 		// 跳到下一个中间件
 		// ctx.Next()
-		if path == "/login" {
-			return
-		}
 		token := ctx.Request.Header.Get("token")
 		if token == "" {
 			ctx.JSON(http.StatusUnauthorized, response.Unauthenticated)
