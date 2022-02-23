@@ -11,7 +11,7 @@ datasource:
 jwt:
   secret: Mr.Cao
   issuer: blog-service
-  expire: 86400 #单位：秒 24*3600=86400=一天
+  expire: 86400 #单位：秒 24*60*60=86400=一天
 redis:
   host: 127.0.0.1
   port: 6379

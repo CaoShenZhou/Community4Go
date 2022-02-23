@@ -45,7 +45,7 @@ func (api *UserApi) Login(ctx *gin.Context) {
 	// 查询用户是否存在
 	if isExist, userInfo := service.User.CheckUserInfo(loginReq.Email, loginReq.Password); isExist {
 		// 拷贝模型字段
-		showUserInfo := map[string]interface{}{
+		showUserInfo := gin.H{
 			"id":       userInfo.ID,
 			"nickname": userInfo.Nickname,
 			"password": userInfo.Password,
@@ -56,7 +56,7 @@ func (api *UserApi) Login(ctx *gin.Context) {
 			var key = "user:token:" + userInfo.ID
 			global.Redis.Do("set", key, token)
 			global.Redis.Do("expire", key, 24*60*60)
-			vo := map[string]interface{}{
+			vo := gin.H{
 				"token":    token,
 				"userInfo": showUserInfo,
 			}
@@ -191,4 +191,6 @@ func (api *UserApi) ValidateRegEmail(ctx *gin.Context) {
 
 // 更新密码
 func (api *UserApi) UpdatePwd(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, response.Ok)
+	return
 }

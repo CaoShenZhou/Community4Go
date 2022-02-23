@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/CaoShenZhou/Blog4Go/global"
-	"github.com/CaoShenZhou/Blog4Go/internal/routers"
+	"github.com/CaoShenZhou/Blog4Go/internal/middleware"
+	router "github.com/CaoShenZhou/Blog4Go/internal/routers"
 	"github.com/CaoShenZhou/Blog4Go/pkg/setting"
 	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
@@ -94,7 +95,16 @@ func init() {
 
 func main() {
 	r := gin.Default()
-	r = routers.LoadUser(r)
-	r = routers.LoadArticleTag(r)
+	// 公开组
+	publicGroup := r.Group("")
+	{
+		router.Public.InitPublicRouter(publicGroup)
+	}
+	// 私有组
+	privateGroup := r.Group("")
+	privateGroup.Use(middleware.JwtAuth())
+	{
+		router.User.InitUserRouter(privateGroup)
+	}
 	panic(r.Run(":" + global.ServerSetting.Port))
 }
