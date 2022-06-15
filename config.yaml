@@ -1,0 +1,25 @@
+server:
+  port: 8088
+datasource:
+  driverName: mysql
+  host: 127.0.0.1
+  port: 3306
+  database: blog
+  username: root
+  password: 12345678
+  config: charset=utf8mb4&parseTime=True&loc=Local
+jwt:
+  secret: Mr.Cao
+  issuer: blog-service
+  expire: 86400 #单位:秒 24*60*60=86400=一天
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: 
+email:
+  host: smtp.qq.com
+  port: 25
+  name: 神州博客
+  username: 1791915772@qq.com
+  # POP3/SMTP服务密码
+  password: 

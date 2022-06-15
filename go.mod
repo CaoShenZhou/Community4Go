@@ -3,6 +3,7 @@ module github.com/CaoShenZhou/Blog4Go
 go 1.17
 
 require (
+	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/cosmtrek/air v1.29.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1 // indirect
