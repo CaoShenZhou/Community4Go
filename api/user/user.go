@@ -2,13 +2,17 @@ package user
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/CaoShenZhou/Blog4Go/global"
+	"github.com/CaoShenZhou/Blog4Go/model"
 	"github.com/CaoShenZhou/Blog4Go/model/response"
 	"github.com/CaoShenZhou/Blog4Go/model/user"
 	"github.com/CaoShenZhou/Blog4Go/service"
 	"github.com/CaoShenZhou/Blog4Go/util"
+	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
 )
 
@@ -92,86 +96,46 @@ func (api *UserApi) GetRegisterCaptcha(c *gin.Context) {
 		if isExists {
 			response.OkWithData(c, vo)
 			return
-		} else {
-			captcha := util.RandomString(6, nil)
-			vo["captcha"] = captcha
-			to := []string{req.Username}
-			if err := util.SendTextEmail(to, "注册博客", "您的验证码为："+captcha+"，有效期为五分钟"); err != nil {
-				response.Error(c, http.StatusInternalServerError)
-			} else {
-				response.OkWithData(c, "验证码已发送")
-			}
+		}
+		// 注册验证码的key
+		key := fmt.Sprintf("user:reg:%s:%s", req.UsernameType, req.Username)
+		// 如果存在验证码就不再次创建
+		if value, err := redis.String(global.Redis.Do("get", key)); value == "" && err != redis.ErrNil {
+			fmt.Println(err)
+			fmt.Println(value)
+			fmt.Println("[][][]")
+			response.Error(c, http.StatusInternalServerError)
 			return
+		} else {
+			if value != "" {
+				response.OkWithMsg(c, "验证码过期后才可再次发送")
+				return
+			}
 		}
-	}
-}
-
-/*
-// 注册
-func (api *UserApi) Register(c *gin.Context) {
-
-	sf, err := util.GetSnowflake()
-	if err == nil {
-		sfStr := sf.String()
-		pwd := "123456"
-		key := sfStr[len(sfStr)-10:] + "Mr.Cao"
-		fmt.Printf("密钥%s\n", key)
-		password := util.AESEncrypt(pwd, key)
-		a := uint(sf.Int64())
-		user := model.User{
-			BaseModel:   model.BaseModel{ID: a},
-			Email:       "123@gmail.com",
-			PhoneNumber: "16600001111",
-			Password:    password,
-		}
-		err := global.DB.Create(&user)
-		fmt.Println(err)
-	}
-	type reqParm struct {
-		Nickname string `json:"nickname" validate:"required,min=2,max=18"`
-		Email    string `json:"email" validate:"required,email"`
-		Password string `json:"password" validate:"required,min=6,max=32"`
-	}
-	// 绑定参数
-	var req reqParm
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWithMsg(c, response.PARM_BIND_FAIL)
-		return
-	}
-	// 校检参数
-	if err := util.VerifyParm(req); err != nil {
-		response.FailWithMsg(c, response.PARM_VERIFY_FAIL)
-		return
-	}
-	// 查询邮箱是否注册
-	if service.User.IsExistEmail("email", req.Email) {
-		to := []string{req.Email}
-		captcha := util.RandomString(6, nil)
+		// 验证码
+		rand.Seed(time.Now().UnixNano())
+		captcha := util.RandomString(6, "")
+		to := []string{req.Username}
 		if err := util.SendTextEmail(to, "注册博客", "您的验证码为："+captcha+"，有效期为五分钟"); err != nil {
 			response.Error(c, http.StatusInternalServerError)
+		} else {
+			global.Redis.Do("set", key, captcha)
+			global.Redis.Do("expire", key, 5*60) // 5分钟
+			response.OkWithMsg(c, "验证码已发送")
 		}
-		key := "user:reg:userInfo:" + req.Email
-		regUserJson, _ := json.Marshal(&req)
-		global.Redis.Do("set", key, regUserJson)
-		global.Redis.Do("expire", key, 5*60)
-		key = "user:reg:captcha:" + req.Email
-		global.Redis.Do("set", key, captcha)
-		global.Redis.Do("expire", key, 5*60)
-		response.FailWithMsg(c, "验证码已发送，有效期为五分钟")
-		return
-	} else {
-		response.FailWithMsg(c, "该邮箱已被注册")
 		return
 	}
 }
 
-/*
-// 验证注册邮箱
-func (api *UserApi) VerifyRegEmail(c *gin.Context) {
-	// 验证注册用户
+// 注册
+func (api *UserApi) Register(c *gin.Context) {
+	// 请求参数
 	type reqParm struct {
-		Email   string `json:"email" validate:"required,email"`
-		Captcha string `json:"captcha" validate:"required,len=6"`
+		Nickname     string `json:"nickname" validate:"required,min=2,max=18"`            // 昵称
+		Captcha      string `json:"captcha" validate:"required,len=6"`                    // 验证码
+		UsernameType string `json:"username_type" validate:"required,oneof=Email MSISDN"` // 用户名类型
+		Username     string `json:"username" validate:"required"`                         // 用户名
+		Password     string `json:"password" validate:"required,min=6,max=32"`            // 密码
 	}
 	// 绑定参数
 	var req reqParm
@@ -184,51 +148,42 @@ func (api *UserApi) VerifyRegEmail(c *gin.Context) {
 		response.FailWithMsg(c, response.PARM_VERIFY_FAIL)
 		return
 	}
-	// 验证码key
-	captchaKey := "user:reg:captcha:" + req.Email
-	if captcha, err := redis.String(global.Redis.Do("get", captchaKey)); err != nil {
-		if captcha == "" {
-			response.FailWithMsg(c, "验证码失效")
-			return
-		} else {
-			response.Error(c, http.StatusInternalServerError)
-			return
-		}
+	// 注册验证码的key
+	key := fmt.Sprintf("user:reg:%s:%s", req.UsernameType, req.Username)
+	if captcha, err := redis.String(global.Redis.Do("get", key)); captcha == "" && err != redis.ErrNil {
+		fmt.Println("123")
+		response.Error(c, http.StatusInternalServerError)
+		return
 	} else {
-		// 如果验证码正确
-		if captcha == req.Captcha {
-			// 用户信息key
-			userInfoKey := "user:reg:userInfo:" + req.Email
-			if userInfoJson, err := redis.Bytes(global.Redis.Do("get", userInfoKey)); err != nil {
+		if req.Captcha == captcha {
+			// 开始注册流程
+			if sf, err := util.GetSnowflake(); err != nil {
 				response.Error(c, http.StatusInternalServerError)
 				return
 			} else {
-				// 删除验证码缓存
-				global.Redis.Do("del", captchaKey)
-				// 删除用户信息缓存
-				global.Redis.Do("del", userInfoKey)
-				// 反序列化用户信息
-				userInfo := &RegReq{}
-				json.Unmarshal(userInfoJson, userInfo)
-				// 填充用户信息
-				uuid := "123"
-				pwd := userInfo.Password
-				key := uuid[0:18] + "Mr.Cao"
-				AesPwd := util.AesEncrypt(pwd, key)
-				user := model.User{
-					Email:    userInfo.Email,
-					Nickname: userInfo.Nickname,
-					Password: AesPwd,
+				sfStr := sf.String()
+				pwdKey := sfStr[len(sfStr)-10:] + "Mr.Cao"
+				password := util.AESEncrypt(req.Password, pwdKey)
+				userInfo := user.User{
+					BaseModel: model.BaseModel{ID: uint(sf.Int64())},
+					Nickname:  req.Nickname,
+					Password:  password,
 				}
-				// 写入数据
-				global.DB.Create(&user)
-				response.OkWithMsg(c, "注册成功")
-				return
+				if req.UsernameType == user.UsernameTypeEmail {
+					userInfo.Email = req.Username
+				} else if req.UsernameType == user.UsernameTypeMSISDN {
+					userInfo.MSISDN = req.Username
+				}
+				if err := global.DB.Create(&userInfo).Error; err != nil {
+					response.Error(c, http.StatusInternalServerError)
+					return
+				}
+				global.Redis.Do("del", key)
 			}
+			response.OkWithMsg(c, "注册成功")
 		} else {
-			response.FailWithMsg(c, "验证码错误")
-			return
+			response.FailWithMsg(c, "验证码有误")
 		}
+		return
 	}
 }
-*/

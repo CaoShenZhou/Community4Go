@@ -2,12 +2,13 @@ package initialize
 
 import (
 	"fmt"
-	"os/user"
 
 	"github.com/CaoShenZhou/Blog4Go/configs"
 	"github.com/CaoShenZhou/Blog4Go/global"
+	"github.com/CaoShenZhou/Blog4Go/model/user"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 )
 
@@ -30,7 +31,8 @@ func Datasource(config configs.Datasource) error {
 		DontSupportRenameColumn:   true,              // 用change重命名列,MySQL8之前的数据库和MariaDB不支持重命名列
 		SkipInitializeWithVersion: false,             // 根据当前MySQL版本自动配置
 	}), &gorm.Config{
-		NamingStrategy: schema.NamingStrategy{SingularTable: true}})
+		Logger:         logger.Default.LogMode(logger.Info),         // 打印SQL
+		NamingStrategy: schema.NamingStrategy{SingularTable: true}}) // 命名策略
 	if err != nil {
 		return err
 	}

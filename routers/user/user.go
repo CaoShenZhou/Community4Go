@@ -20,6 +20,6 @@ func (router *UserRouter) PublicUserRouter(rg *gin.RouterGroup) {
 	{
 		baseRouter.POST("/login", baseApi.Login)
 		baseRouter.POST("/getRegisterCaptcha", baseApi.GetRegisterCaptcha)
-		// baseRouter.POST("/register", baseApi.Register)
+		baseRouter.POST("/register", baseApi.Register)
 	}
 }

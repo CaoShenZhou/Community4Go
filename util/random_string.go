@@ -2,21 +2,22 @@ package util
 
 import (
 	"math/rand"
+	"strings"
 )
 
-// 获取随机字符串 []rune("你好世界")
-func RandomString(n int, allowedChars []rune) string {
-	var defaultLetters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	var letters []rune
-	if len(allowedChars) == 0 {
-		letters = defaultLetters
+// 获取随机字符串
+func RandomString(n int, allowedChars string) string {
+	var defChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	var chars []byte
+	if len(strings.Trim(allowedChars, "")) == 0 {
+		chars = []byte(defChars)
 	} else {
-		letters = allowedChars
+		chars = []byte(chars)
 	}
-	b := make([]rune, n)
-	for i := range b {
-		// rand.Seed(time.Now().Unix())
-		b[i] = letters[rand.Intn(len(letters))]
+	bytes := []byte(chars)
+	var result []byte
+	for i := 0; i < n; i++ {
+		result = append(result, bytes[rand.Intn(len(bytes))])
 	}
-	return string(b)
+	return string(result)
 }

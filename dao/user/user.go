@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/CaoShenZhou/Blog4Go/global"
 	"github.com/CaoShenZhou/Blog4Go/model/user"
+	"gorm.io/gorm"
 )
 
 type UserDao struct{}
@@ -14,7 +15,9 @@ func (dao *UserDao) GetUserInfoByUsername(usernameType, username string) (*user.
 		db = db.Where("email = ?", username)
 	}
 	var userInfo user.User
-	if err := db.First(&userInfo).Error; err != nil {
+	if err := db.First(&userInfo).Error; err == gorm.ErrRecordNotFound {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	} else {
 		return &userInfo, nil
