@@ -62,6 +62,12 @@ func (api *UserApi) Login(c *gin.Context) {
 				"token":    token,
 				"userInfo": userTokenInfo,
 			}
+			ip, _ := c.RemoteIP()
+			ull := user.UserLoginLog{
+				UserID: userInfo.ID,
+				IP:     ip.String(),
+			}
+			service.User.AddLoginLog(ull)
 			response.OkWithMsgAndData(c, "登录成功", vo)
 			return
 		} else {

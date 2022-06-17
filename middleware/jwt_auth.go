@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/CaoShenZhou/Blog4Go/model/user"
-	"github.com/CaoShenZhou/Blog4Go/service"
 	"github.com/CaoShenZhou/Blog4Go/util"
 	"github.com/gin-gonic/gin"
 )
@@ -31,12 +30,7 @@ func JwtAuth() gin.HandlerFunc {
 			} else {
 				tokenInfo := user.UserTokenInfo{}
 				json.Unmarshal([]byte(claims.Info), &tokenInfo)
-				ip, _ := c.RemoteIP()
-				ull := user.UserLoginLog{
-					UserID: tokenInfo.UserID,
-					IP:     ip.String(),
-				}
-				service.User.AddLoginLog(ull)
+				fmt.Println(tokenInfo)
 				return
 			}
 		}
