@@ -45,6 +45,7 @@ func Datasource(config configs.Datasource) error {
 func autoMigrateModels(db *gorm.DB) {
 	if err := db.AutoMigrate(
 		user.User{},
+		user.UserLoginLog{},
 	); err != nil {
 		fmt.Println("数据模型迁移失败")
 	}

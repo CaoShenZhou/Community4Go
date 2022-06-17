@@ -1,32 +1,42 @@
 package middleware
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"github.com/CaoShenZhou/Blog4Go/model/user"
+	"github.com/CaoShenZhou/Blog4Go/service"
 	"github.com/CaoShenZhou/Blog4Go/util"
 	"github.com/gin-gonic/gin"
 )
 
 func JwtAuth() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		path := ctx.Request.URL.Path
+	return func(c *gin.Context) {
+		path := c.Request.URL.Path
 		fmt.Println(path)
 		// 跳到下一个中间件
-		// ctx.Next()
-		token := ctx.Request.Header.Get("token")
+		// c.Next()
+		token := c.Request.Header.Get("token")
 		if token == "" {
-			ctx.JSON(http.StatusUnauthorized, "未认证")
+			c.JSON(http.StatusUnauthorized, "未认证")
 			// 中间件结束后会直接返回
-			ctx.Abort()
+			c.Abort()
 			return
 		} else {
 			if claims, err := util.ParseToken(token); err != nil {
-				ctx.JSON(http.StatusUnauthorized, "未认证")
-				ctx.Abort()
+				c.JSON(http.StatusUnauthorized, "未认证")
+				c.Abort()
 				return
 			} else {
-				fmt.Println(claims)
+				tokenInfo := user.UserTokenInfo{}
+				json.Unmarshal([]byte(claims.Info), &tokenInfo)
+				ip, _ := c.RemoteIP()
+				ull := user.UserLoginLog{
+					UserID: tokenInfo.UserID,
+					IP:     ip.String(),
+				}
+				service.User.AddLoginLog(ull)
 				return
 			}
 		}

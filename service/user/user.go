@@ -55,3 +55,8 @@ func (service *UserService) Login(usernameType, username, pwd string) (*user.Use
 		}
 	}
 }
+
+// 添加用户登录日志
+func (service *UserService) AddLoginLog(userLoginLog user.UserLoginLog) error {
+	return global.DB.Create(&userLoginLog).Error
+}

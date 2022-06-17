@@ -8,7 +8,7 @@ import (
 )
 
 type Claims struct {
-	Info interface{} `json:"info"`
+	Info string `json:"info"`
 	jwt.StandardClaims
 }
 
@@ -17,11 +17,11 @@ func GetJWTSecret() []byte {
 }
 
 // 生成token
-func GenerateToken(info interface{}) (string, error) {
+func GenerateToken(str string) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(global.JWT.Expire)
 	claims := Claims{
-		Info: info,
+		Info: str,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
 			Issuer:    global.JWT.Issuer,

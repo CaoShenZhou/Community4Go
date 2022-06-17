@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -46,19 +47,20 @@ func (api *UserApi) Login(c *gin.Context) {
 			response.FailWithMsg(c, "账号密码不匹配")
 			return
 		}
-		// 拷贝模型字段
-		showUserInfo := gin.H{
-			"id":       userInfo.ID,
-			"nickname": userInfo.Nickname,
+		// 用户令牌信息
+		userTokenInfo := user.UserTokenInfo{
+			UserID:   userInfo.ID,
+			Nickname: userInfo.Nickname,
 		}
+		jsonByteArr, _ := json.Marshal(userTokenInfo)
 		// 生成token
-		if token, err := util.GenerateToken(showUserInfo); err == nil {
+		if token, err := util.GenerateToken(string(jsonByteArr)); err == nil {
 			var key = "user:token:" + fmt.Sprintf("%d", userInfo.ID)
 			global.Redis.Do("set", key, token)
 			global.Redis.Do("expire", key, 24*60*60) // 过期时间为一天
 			vo := gin.H{
 				"token":    token,
-				"userInfo": showUserInfo,
+				"userInfo": userTokenInfo,
 			}
 			response.OkWithMsgAndData(c, "登录成功", vo)
 			return

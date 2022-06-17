@@ -14,3 +14,9 @@ const (
 	UsernameTypeEmail  = "Email"
 	UsernameTypeMSISDN = "MSISDN"
 )
+
+// 用户令牌信息
+type UserTokenInfo struct {
+	UserID   uint   `json:"user_id"`  // 用户ID
+	Nickname string `json:"nickname"` // 昵称
+}
