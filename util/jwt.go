@@ -19,11 +19,11 @@ func GetJWTSecret() []byte {
 // 生成token
 func GenerateToken(str string) (string, error) {
 	nowTime := time.Now()
-	expireTime := nowTime.Add(global.JWT.Expire)
+	expireTime := nowTime.Add(global.JWT.Expire).UnixMilli()
 	claims := Claims{
 		Info: str,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expireTime.Unix(),
+			ExpiresAt: expireTime,
 			Issuer:    global.JWT.Issuer,
 		},
 	}

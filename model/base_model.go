@@ -1,14 +1,10 @@
 package model
 
-import (
-	"time"
-
-	"gorm.io/gorm"
-)
+import "gorm.io/plugin/soft_delete"
 
 type BaseModel struct {
-	ID        uint           `json:"id" gorm:"primarykey"` // 主键ID
-	CreatedAt time.Time      `json:"created_at"`           // 创建时间
-	UpdatedAt time.Time      `json:"updated_at"`           // 更新时间
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`       // 删除时间
+	ID        uint                  `json:"id" gorm:"primarykey"`                          // 主键ID
+	CreatedAt int64                 `json:"created_at" gorm:"index:,autoCreateTime:milli"` // 创建时间
+	UpdatedAt int64                 `json:"updated_at" gorm:"index:,autoUpdateTime:milli"` // 更新时间
+	DeletedAt soft_delete.DeletedAt `json:"-" gorm:"index:,softDelete:milli"`              // 删除时间
 }
