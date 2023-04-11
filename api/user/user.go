@@ -109,9 +109,6 @@ func (api *UserApi) GetRegisterCaptcha(c *gin.Context) {
 		key := fmt.Sprintf("user:reg:%s:%s", req.UsernameType, req.Username)
 		// 如果存在验证码就不再次创建
 		if value, err := redis.String(global.Redis.Do("get", key)); value == "" && err != redis.ErrNil {
-			fmt.Println(err)
-			fmt.Println(value)
-			fmt.Println("[][][]")
 			response.Error(c, http.StatusInternalServerError)
 			return
 		} else {
@@ -159,7 +156,6 @@ func (api *UserApi) Register(c *gin.Context) {
 	// 注册验证码的key
 	key := fmt.Sprintf("user:reg:%s:%s", req.UsernameType, req.Username)
 	if captcha, err := redis.String(global.Redis.Do("get", key)); captcha == "" && err != redis.ErrNil {
-		fmt.Println("123")
 		response.Error(c, http.StatusInternalServerError)
 		return
 	} else {
