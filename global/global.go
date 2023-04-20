@@ -1,8 +1,9 @@
 package global
 
 import (
-	"github.com/CaoShenZhou/Blog4Go/configs"
+	"github.com/CaoShenZhou/Community4Go/configs"
 	"github.com/garyburd/redigo/redis"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -12,4 +13,5 @@ var (
 	Email  configs.Email
 	JWT    configs.JWT
 	Server configs.Server
+	Zap    zap.Logger
 )

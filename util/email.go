@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/smtp"
 
-	"github.com/CaoShenZhou/Blog4Go/global"
+	"github.com/CaoShenZhou/Community4Go/global"
 	"github.com/jordan-wright/email"
 )
 

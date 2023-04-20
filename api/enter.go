@@ -1,6 +1,6 @@
 package api
 
-import "github.com/CaoShenZhou/Blog4Go/api/user"
+import "github.com/CaoShenZhou/Community4Go/api/user"
 
 var (
 	User user.UserApi

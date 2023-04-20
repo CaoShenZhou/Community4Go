@@ -4,13 +4,13 @@ datasource:
   driverName: mysql
   host: 127.0.0.1
   port: 3306
-  database: blog
+  database: community
   username: root
   password: 12345678
   config: charset=utf8mb4&parseTime=True&loc=Local
 jwt:
   secret: Mr.Cao
-  issuer: blog-service
+  issuer: community-service
   expire: 86400 #单位:秒 24*60*60=86400=一天
 redis:
   host: 127.0.0.1

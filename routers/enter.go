@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/CaoShenZhou/Blog4Go/routers/user"
+	"github.com/CaoShenZhou/Community4Go/routers/user"
 )
 
 var (

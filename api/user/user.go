@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CaoShenZhou/Blog4Go/global"
-	"github.com/CaoShenZhou/Blog4Go/model"
-	"github.com/CaoShenZhou/Blog4Go/model/response"
-	"github.com/CaoShenZhou/Blog4Go/model/user"
-	"github.com/CaoShenZhou/Blog4Go/service"
-	"github.com/CaoShenZhou/Blog4Go/util"
+	"github.com/CaoShenZhou/Community4Go/global"
+	"github.com/CaoShenZhou/Community4Go/model"
+	"github.com/CaoShenZhou/Community4Go/model/response"
+	"github.com/CaoShenZhou/Community4Go/model/user"
+	"github.com/CaoShenZhou/Community4Go/service"
+	"github.com/CaoShenZhou/Community4Go/util"
 	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
 )

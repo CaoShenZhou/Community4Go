@@ -3,9 +3,9 @@ package initialize
 import (
 	"fmt"
 
-	"github.com/CaoShenZhou/Blog4Go/configs"
-	"github.com/CaoShenZhou/Blog4Go/global"
-	"github.com/CaoShenZhou/Blog4Go/model/user"
+	"github.com/CaoShenZhou/Community4Go/configs"
+	"github.com/CaoShenZhou/Community4Go/global"
+	"github.com/CaoShenZhou/Community4Go/model/user"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

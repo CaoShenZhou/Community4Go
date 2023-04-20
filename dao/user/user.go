@@ -1,8 +1,8 @@
 package user
 
 import (
-	"github.com/CaoShenZhou/Blog4Go/global"
-	"github.com/CaoShenZhou/Blog4Go/model/user"
+	"github.com/CaoShenZhou/Community4Go/global"
+	"github.com/CaoShenZhou/Community4Go/model/user"
 	"gorm.io/gorm"
 )
 

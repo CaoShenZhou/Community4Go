@@ -3,10 +3,10 @@ package user
 import (
 	"fmt"
 
-	"github.com/CaoShenZhou/Blog4Go/dao"
-	"github.com/CaoShenZhou/Blog4Go/global"
-	"github.com/CaoShenZhou/Blog4Go/model/user"
-	"github.com/CaoShenZhou/Blog4Go/util"
+	"github.com/CaoShenZhou/Community4Go/dao"
+	"github.com/CaoShenZhou/Community4Go/global"
+	"github.com/CaoShenZhou/Community4Go/model/user"
+	"github.com/CaoShenZhou/Community4Go/util"
 )
 
 type UserService struct{}

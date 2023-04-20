@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/CaoShenZhou/Blog4Go/api"
+	"github.com/CaoShenZhou/Community4Go/api"
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,8 +1,8 @@
 package initialize
 
 import (
-	"github.com/CaoShenZhou/Blog4Go/configs"
-	"github.com/CaoShenZhou/Blog4Go/global"
+	"github.com/CaoShenZhou/Community4Go/configs"
+	"github.com/CaoShenZhou/Community4Go/global"
 	"github.com/garyburd/redigo/redis"
 )
 

@@ -1,6 +1,6 @@
 package user
 
-import "github.com/CaoShenZhou/Blog4Go/model"
+import "github.com/CaoShenZhou/Community4Go/model"
 
 type UserLoginLog struct {
 	model.BaseModel

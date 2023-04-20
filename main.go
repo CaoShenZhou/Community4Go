@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/CaoShenZhou/Blog4Go/configs"
-	"github.com/CaoShenZhou/Blog4Go/global"
-	"github.com/CaoShenZhou/Blog4Go/initialize"
-	"github.com/CaoShenZhou/Blog4Go/middleware"
-	router "github.com/CaoShenZhou/Blog4Go/routers"
+	"github.com/CaoShenZhou/Community4Go/configs"
+	"github.com/CaoShenZhou/Community4Go/global"
+	"github.com/CaoShenZhou/Community4Go/initialize"
+	"github.com/CaoShenZhou/Community4Go/middleware"
+	router "github.com/CaoShenZhou/Community4Go/routers"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )

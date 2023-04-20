@@ -3,7 +3,7 @@ package util
 import (
 	"time"
 
-	"github.com/CaoShenZhou/Blog4Go/global"
+	"github.com/CaoShenZhou/Community4Go/global"
 	"github.com/dgrijalva/jwt-go"
 )
 

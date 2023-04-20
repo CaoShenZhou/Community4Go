@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/CaoShenZhou/Blog4Go/model/user"
-	"github.com/CaoShenZhou/Blog4Go/util"
+	"github.com/CaoShenZhou/Community4Go/model/user"
+	"github.com/CaoShenZhou/Community4Go/util"
 	"github.com/gin-gonic/gin"
 )
 
